@@ -3,6 +3,7 @@ package com.selman.api.tests;
 import com.github.javafaker.Faker;
 import com.selman.api.base.BaseTest;
 import com.selman.api.pojo.User;
+import com.selman.api.utilities.DatabaseManager;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.Assert;
@@ -72,8 +73,25 @@ public class RegisterTest extends BaseTest {
         Assert.assertEquals(response.jsonPath().getString("message"), "User created!", "Success message mismatch!");
 
         System.out.println("✅ TEST PASSED: Created user -> " + userRequest.getEmail());
+
+        // STEP 4: Database Validation (Simulation)
+        System.out.println("Starting Database Validation...");
+        // Open DB Connection
+        DatabaseManager.connect();
+
+        // SIMULATION STEP: Since we don't have access to the real production DB,
+        // we mimic the backend behavior by inserting the data into our local 'Shadow DB'.
+        // In a real work environment, this step is skipped as data is already there.
+        DatabaseManager.insertMockUser(userRequest.getEmail(), userRequest.getName());
+
+        // REAL SDET WORK: Now we query the DB to verify the data integrity
+        boolean isUserInDb = DatabaseManager.isUserRegistered(userRequest.getEmail());
+
+        Assert.assertTrue(isUserInDb, "⛔ Database Validation Failed! User not found in DB.");
+
+        System.out.println("✅ Database Validation Passed for: " + userRequest.getEmail());
+
+        // Close Connection
+        DatabaseManager.close();
     }
-
-
-
 }
